@@ -98,3 +98,64 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+ ##### Данные
+ 
+  1.Интерфейс продукта (IProduct).
+
+    interface IProduct {
+    id: string;
+    description: string;
+    image: string;
+    title: string;
+    category: string;
+    price: number | null;
+  }
+
+  `total:number|null` - общее количество товара, которое испльзуются в данном интеренет-магазине "Web-Larek".
+      items - массив товаров:
+      -`id:string` - уникальный идентификационный номер товара.
+      -`description:string` - описание товара
+      -`image:string` - Изображение товара
+      -`title:string` - Наименование товара
+      -`category:string` - категория товара
+      -`price:number|null` - цена товара.
+
+  2.Интерфейс покупателя (IBuyer).
+
+    interface IBuyer {
+    payment: TPayment;
+    email: string;
+    phone: string;
+    address: string;
+  } 
+
+  `payment: TPayment` - способ оплаты покупателя
+  `email: string` - email покупателя
+  `phone: string` - номер телефона покупателя
+  `address: string` - адрес доставки покупателя.
+
+  1.Каталог товара (Product)
+  `saveItems` - сохранение массива тваров
+  `getAllItems()` - возвращает копию массива, Важно (не глубокую)
+  `getItem()`  - получение товаров по id
+  `savePreviewItem()` - сохранения товара для отображения
+  `getPreviewItem()` - получение товара для тбражения.
+
+  2.Покупатель(Buyer)
+  `setData()` - метод для сохранение данных
+  `getData()` - метод получения всех данных покупателя
+  `clear()` - отчистка всех данных покупателя
+  `validate()` - валидация данных.
+
+  3.Корзина товара (Card)
+  `getItems()` - получение массива товаров, которые находятся в корзине. Глубокое копирование
+  `addItem()` - добавление товара
+  `deleteItem()` - удаление товара
+  `clear()` - очистка корзины
+  `getTotalPrice()` - подсчет общей стоимсти товара
+  `getCount()` - количество тваров в корзине
+  `hasItem()` -проверка наличия товара.
+
+  4.Получение данных продуктов с сервера(ProductApiData)
+  `getProduct` - получение каталлого товара с сервера
+  `submitOrder` - отправлет данные на сервер.
