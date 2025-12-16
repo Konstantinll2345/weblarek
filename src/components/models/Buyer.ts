@@ -1,16 +1,13 @@
 import { IBuyer, TPayment, BuyerValid } from "../../types/index"
 
   export class  Buyer {
-    private payment?: TPayment;
-    private address?: string ;
-    private phone?: string;
-    private email?: string;
+    private payment: TPayment = "";
+    private address: string = "";
+    private phone: string = "";
+    private email: string = "";
 
-  constructor(data: Partial<IBuyer> = {}) {
-    this.payment = data.payment;
-    this.address = data.address;
-    this.phone = data.phone;
-    this.email = data.email;
+  constructor() {
+    
   }
 
   setData(data: Partial<IBuyer>): void {
@@ -30,10 +27,10 @@ import { IBuyer, TPayment, BuyerValid } from "../../types/index"
   }
 
   clear(): void {
-    this.payment = undefined;
-    this.address = undefined;
-    this.phone = undefined;
-    this.email = undefined;
+    this.payment = ""; 
+    this.address = "";
+    this.phone = "";
+    this.email = "";
   }
 
   validate(): BuyerValid {

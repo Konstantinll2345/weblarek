@@ -1,21 +1,20 @@
 import { IProduct } from "../../types";
 
-export class Card {
+export class Cart {
 
   private items: IProduct[] = [];
 
   getItems(): IProduct[] {
-      return JSON.parse(JSON.stringify(this.items));
+      return this.items;
     }
 
   addItem(product: IProduct) :void {
     this.items.push(product)
   }
   
-  deleteItem(productId: string): boolean {
-    const initialLength = this.items.length;   
-    this.items = this.items.filter(item => item.id !== productId);      
-    return this.items.length < initialLength;
+  deleteItem(item: IProduct): void {
+    const deleteItem = item;
+    this.items = this.items.filter(item => item !== deleteItem);
   }
 
   clear(): void {

@@ -1,12 +1,10 @@
 import { IProduct } from "../../types";
 
-export class Product {
-  private items: IProduct[];
-  private previewItem: IProduct | null;
+export class Products {
+  private items: IProduct[] = [];
+  private previewItem: IProduct | null = null;
 
-  constructor(initialItems: IProduct[] = []) {
-    this.items = initialItems;
-    this.previewItem = null;
+  constructor() {
   }
 
   setItems(items: IProduct[]): void {
