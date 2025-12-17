@@ -24,10 +24,10 @@ if (productsModel.getItems().length > 0) {
     const secondProduct = productsModel.getItems()[1] || productsModel.getItems()[0];
     
     cartCheck.addItem(firstProduct);
-    console.log('Добавлен товар в корзину:', firstProduct.title);
+    console.log('Добавлен товар в корзину:', firstProduct);
     
     cartCheck.addItem(secondProduct);
-    console.log('Добавлен товар в корзину:', secondProduct.title);
+    console.log('Добавлен товар в корзину:', secondProduct);
     
     console.log('Количество товаров в корзине:', cartCheck.getCount());
     console.log('Общая сумма товаров в корзине:', cartCheck.getTotalPrice());
@@ -71,7 +71,7 @@ console.log('Очистка данных:', buyerCheck.getData());
 
 console.log("-- Api --")
 
-const baseApi = new Api(API_URL);//должно быть API_URL но не работает, кароче туплю на ровном месте.//
+const baseApi = new Api(API_URL);
 console.log("server", baseApi)
 const productApiData = new ProductApiData(baseApi);
 const productList = new Products();

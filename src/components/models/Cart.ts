@@ -5,10 +5,10 @@ export class Cart {
   private items: IProduct[] = [];
 
   getItems(): IProduct[] {
-      return this.items;
+      return [...this.items];
     }
 
-  addItem(product: IProduct) :void {
+  addItem(product: IProduct): void {
     this.items.push(product)
   }
   

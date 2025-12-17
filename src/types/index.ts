@@ -37,8 +37,7 @@ export interface ApiDataOrder {
 
 export interface IOrder extends IBuyer {
   total: number;
-  items: string[];    
-  id?: string;        
+  items: string[];         
 }
 
 export interface ApiDataProm {
