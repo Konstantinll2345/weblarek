@@ -12,9 +12,8 @@ export class Cart {
     this.items.push(product)
   }
   
-  deleteItem(item: IProduct): void {
-    const deleteItem = item;
-    this.items = this.items.filter(item => item.id !== deleteItem.id);
+  deleteItem(productDelete: IProduct): void {
+    this.items = this.items.filter(item => item.id !== productDelete.id);
   }
 
   clear(): void {
