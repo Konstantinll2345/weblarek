@@ -46,3 +46,5 @@ export interface ApiDataProm {
     data: object, 
     method?: ApiPostMethods): Promise<T>;
 }
+
+

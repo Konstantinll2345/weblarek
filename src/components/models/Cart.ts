@@ -1,23 +1,48 @@
-import { IProduct } from "../../types";
+import { EventEmitter } from '../base/Events';
+import { IProduct } from '../../types';
 
 export class Cart {
-
   private items: IProduct[] = [];
+    
+  constructor(private events?: EventEmitter) {
 
-  getItems(): IProduct[] {
-      return [...this.items];
-    }
+  }
 
   addItem(product: IProduct): void {
-    this.items.push(product)
+    this.items.push(product);
+    if (this.events) {
+      this.events.emit('cart:changed', { 
+        items: this.items, 
+        total: this.getTotalPrice(),
+        count: this.items.length 
+      });
+    }
   }
-  
+    
   deleteItem(product: IProduct): void {
     this.items = this.items.filter(item => item.id !== product.id);
+    if (this.events) {
+      this.events.emit('cart:changed', { 
+        items: this.items, 
+        total: this.getTotalPrice(),
+        count: this.items.length 
+      });
+    }
   }
 
   clear(): void {
     this.items = [];
+    if (this.events) {
+      this.events.emit('cart:changed', { 
+        items: [], 
+        total: 0,
+        count: 0 
+      });
+    }
+  }
+
+  getItems(): IProduct[] {
+    return [...this.items];
   }
 
   getTotalPrice(): number {
