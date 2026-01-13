@@ -23,12 +23,12 @@ export class Products {
     return this.items.find(item => item.id === id);
   }
 
-  setPreviewItem(item: IProduct): void {
+  setPreviewItem(item: IProduct | null): void {
     this.previewItem = item;
     if (this.events) {
-      this.events.emit('preview:changed', { item: this.previewItem });
+        this.events.emit('preview:changed', { item: this.previewItem });
     }
-  }
+}
 
   getPreviewItem(): IProduct | null {
     return this.previewItem;

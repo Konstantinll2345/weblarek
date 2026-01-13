@@ -14,8 +14,9 @@ export class CardPreview extends Card {
         
         this.buttonElement.addEventListener('click', (event) => {
             event.preventDefault();
-            if (this.container.dataset.id) {
-                this.events.emit('card:add', { id: this.container.dataset.id });
+            const id = this.container.dataset.id;
+            if (id) {
+                this.events.emit('card:add', { id });
             }
         });
     }
@@ -34,6 +35,10 @@ export class CardPreview extends Card {
     
     render(data?: Partial<IProduct>): HTMLElement {
         const element = super.render(data);
+        
+        if (data?.id) {
+            element.dataset.id = data.id;
+        }
         
         if (data?.description) {
             this.setDescription(data.description);

@@ -17,68 +17,80 @@ export class ContactsForm extends Form<ContactsFormData> {
         this.phoneInput = this.getElement<HTMLInputElement>('input[name="phone"]');
         
         this.emailInput.addEventListener('input', () => {
-            this.events.emit('contacts:email', { email: this.emailInput.value });
-            this.validateForm();
+            this.events.emit('contacts:email', { 
+                email: this.emailInput.value 
+            });
         });
         
         this.phoneInput.addEventListener('input', () => {
-            this.events.emit('contacts:phone', { phone: this.phoneInput.value });
-            this.validateForm();
+            this.events.emit('contacts:phone', { 
+                phone: this.phoneInput.value 
+            });
         });
         
         this.formElement.addEventListener('submit', (event) => {
             event.preventDefault();
-            if (this.validateForm()) {
-                this.events.emit('contacts:submit', {
-                    email: this.emailInput.value.trim(),
-                    phone: this.phoneInput.value.trim()
-                });
-            }
+            this.events.emit('contacts:submit', {
+                email: this.emailInput.value.trim(),
+                phone: this.phoneInput.value.trim()
+            });
         });
     }
     
-    private validateForm(): boolean {
-        const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.emailInput.value);
-        const phoneValid = this.phoneInput.value.replace(/\D/g, '').length >= 11;
-        const isValid = emailValid && phoneValid;
+    setFormErrors(errors: { email?: string; phone?: string }): void {
+        const errorMessages: string[] = [];
         
-        this.setSubmitDisabled(!isValid);
+        if (errors.email) {
+            errorMessages.push(errors.email);
+            this.emailInput.classList.add('form__input-error');
+        } else {
+            this.emailInput.classList.remove('form__input-error');
+        }
+
+        if (errors.phone) {
+            errorMessages.push(errors.phone);
+            this.phoneInput.classList.add('form__input-error');
+        } else {
+            this.phoneInput.classList.remove('form__input-error');
+        }
         
-        if (!isValid) {
-            const errors = [];
-            if (!emailValid) errors.push('Некорректный email');
-            if (!phoneValid) errors.push('Некорректный телефон');
-            this.setErrors(errors.join(', '));
+        if (errorMessages.length > 0) {
+            this.setText(this.errorsElement, errorMessages.join(', '));
         } else {
             this.clearErrors();
         }
-        
-        return isValid;
+    }
+    
+    protected clearFormErrors(): void {
+        this.setText(this.errorsElement, '');
+        this.emailInput.classList.remove('form__input-error');
+        this.phoneInput.classList.remove('form__input-error');
+    }
+    
+    updateSubmitButton(isValid: boolean): void {
+        this.setSubmitDisabled(!isValid);
     }
     
     setEmail(email: string): void {
         this.emailInput.value = email;
-        this.validateForm();
     }
     
     setPhone(phone: string): void {
         this.phoneInput.value = phone;
-        this.validateForm();
     }
     
     render(data?: Partial<ContactsFormData>): HTMLElement {
-    super.render(data);
+        super.render(data);
         
         if (data) {
-            if (data.email) {
+            if (data.email !== undefined) {
                 this.emailInput.value = data.email;
             }
-            if (data.phone) {
+            if (data.phone !== undefined) {
                 this.phoneInput.value = data.phone;
             }
         }
         
-        this.validateForm();
         return this.container;
     }
 }

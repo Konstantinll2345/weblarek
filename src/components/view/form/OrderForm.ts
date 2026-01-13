@@ -13,13 +13,14 @@ export class OrderForm extends Form<OrderFormData> {
     private addressInput: HTMLInputElement;
     private selectedPayment: TPayment = '';
     
-    constructor(container: HTMLElement, events: EventEmitter) {
+        constructor(container: HTMLElement, events: EventEmitter) {
         super(container, events);
         
         this.onlineButton = this.getElement<HTMLButtonElement>('button[name="card"]');
         this.offlineButton = this.getElement<HTMLButtonElement>('button[name="cash"]');
         this.addressInput = this.getElement<HTMLInputElement>('input[name="address"]');
         
+
         this.onlineButton.addEventListener('click', () => {
             this.selectPayment('online');
             this.events.emit('order:payment', { payment: 'online' });
@@ -32,33 +33,51 @@ export class OrderForm extends Form<OrderFormData> {
         
         this.addressInput.addEventListener('input', () => {
             this.events.emit('order:address', { address: this.addressInput.value });
-            this.validateForm();
         });
         
         this.formElement.addEventListener('submit', (event) => {
             event.preventDefault();
-            if (this.validateForm()) {
-                this.events.emit('order:submit', {
-                    payment: this.selectedPayment,
-                    address: this.addressInput.value.trim()
-                });
-            }
+            this.events.emit('order:submit', {
+                payment: this.selectedPayment,
+                address: this.addressInput.value.trim()
+            });
         });
     }
     
     private selectPayment(payment: TPayment): void {
         this.selectedPayment = payment;
-        
         this.toggleClass(this.onlineButton, 'button_alt-active', payment === 'online');
         this.toggleClass(this.offlineButton, 'button_alt-active', payment === 'offline');
-        
-        this.validateForm();
     }
     
-    private validateForm(): boolean {
-        const isValid = !!this.selectedPayment && this.addressInput.value.trim().length > 0;
+    setFormError(errors: { payment?: string; address?: string }): void {
+        const errorMessages: string[] = [];
+        
+        if (errors.payment) {
+            errorMessages.push(errors.payment);
+        }
+        
+        if (errors.address) {
+            errorMessages.push(errors.address);
+            this.addressInput.classList.add('form__input-error');
+        } else {
+            this.addressInput.classList.remove('form__input-error');
+        }
+        
+        if (errorMessages.length > 0) {
+            this.setText(this.errorsElement, errorMessages.join(', '));
+        } else {
+            this.clearErrors();
+        }
+    }
+    
+    protected clearFormErrors(): void {
+        this.setText(this.errorsElement, '');
+        this.addressInput.classList.remove('form__input-error');
+    }
+    
+    updateSubmitButton(isValid: boolean): void {
         this.setSubmitDisabled(!isValid);
-        return isValid;
     }
     
     setPayment(payment: TPayment): void {
@@ -67,7 +86,6 @@ export class OrderForm extends Form<OrderFormData> {
     
     setAddress(address: string): void {
         this.addressInput.value = address;
-        this.validateForm();
     }
     
     render(data?: Partial<OrderFormData>): HTMLElement {
@@ -77,12 +95,11 @@ export class OrderForm extends Form<OrderFormData> {
             if (data.payment) {
                 this.selectPayment(data.payment);
             }
-            if (data.address) {
+            if (data.address !== undefined) {
                 this.addressInput.value = data.address;
             }
         }
         
-        this.validateForm();
         return this.container;
     }
 }

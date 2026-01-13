@@ -2,7 +2,7 @@ import { View } from '../View';
 import { IProduct } from '../../../types';
 import { categoryMap } from '../../../utils/constants';
 import { EventEmitter } from '../../base/Events';
-import { CDN_URL } from '../../../utils/constants'; // Импортируем CDN_URL
+import { getFullImageUrl } from '../../../utils/utils';
 
 export abstract class Card extends View<IProduct> {
     protected titleElement: HTMLElement;
@@ -37,17 +37,10 @@ export abstract class Card extends View<IProduct> {
         this.setText(this.priceElement, priceText);
     }
     
-    protected setImageData(src: string, alt?: string): void {
+        protected setImageData(src: string, alt?: string): void {
         const imageElement = this.container.querySelector('.card__image');
         if (imageElement instanceof HTMLImageElement) {
-
-            const fullImageUrl = this.getFullImageUrl(src);
-            
-            console.log(`Card: Устанавливаю изображение`, {
-                original: src,
-                fullUrl: fullImageUrl,
-                alt: alt
-            });
+            const fullImageUrl = getFullImageUrl(src);
             
             imageElement.src = fullImageUrl;
             
@@ -59,41 +52,13 @@ export abstract class Card extends View<IProduct> {
             if (alt !== undefined) {
                 imageElement.alt = alt;
             }
-        } else {
-            console.error('Card: Элемент .card__image не найден');
         }
-    }
-    
-    private getFullImageUrl(imagePath: string): string {
-        if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
-            return imagePath;
-        }  
-
-        if (imagePath.startsWith('/')) {
-            return `${CDN_URL}${imagePath}`;
-        }
-        
-        if (!imagePath.startsWith('/')) {
-            return `${CDN_URL}/${imagePath}`;
-        }
-        
-        return imagePath;
     }
     
     render(data?: Partial<IProduct>): HTMLElement {
         super.render(data);
         
         if (data) {
-            console.log(`Card render данные:`, {
-                id: data.id,
-                title: data.title,
-                image: data.image,
-                price: data.price
-            });
-            
-            if (data.id) {
-                this.container.dataset.id = data.id;
-            }
             if (data.category) {
                 this.setCategory(data.category);
             }

@@ -14,8 +14,9 @@ export class CardBasket extends Card {
         
         this.deleteButton.addEventListener('click', (event) => {
             event.preventDefault();
-            if (this.container.dataset.id) {
-                this.events.emit('basket:remove', { id: this.container.dataset.id });
+            const id = this.container.dataset.id;
+            if (id) {
+                this.events.emit('basket:remove', { id });
             }
         });
     }
@@ -26,6 +27,10 @@ export class CardBasket extends Card {
     
     render(data?: Partial<IProduct>): HTMLElement {
         const element = super.render(data);
+        if (data?.id) {
+            element.dataset.id = data.id;
+        }
+        
         return element;
     }
 }

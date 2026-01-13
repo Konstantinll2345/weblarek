@@ -1,5 +1,5 @@
-import { View } from '../View';
-import { EventEmitter } from '../../base/Events';
+import { View } from './View';
+import { EventEmitter } from '../base/Events';
 interface SuccessData {
     total: number;
 }

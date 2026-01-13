@@ -1,5 +1,6 @@
 import { Card } from './Card';
 import { EventEmitter } from '../../base/Events';
+import { IProduct } from '../../../types';
 
 export class CardCatalog extends Card {
     constructor(container: HTMLElement, events: EventEmitter) {
@@ -7,9 +8,20 @@ export class CardCatalog extends Card {
         
         this.container.addEventListener('click', (event) => {
             event.preventDefault();
-            if (this.container.dataset.id) {
-                this.events.emit('card:select', { id: this.container.dataset.id });
+            const id = this.container.dataset.id;
+            if (id) {
+                this.events.emit('card:select', { id });
             }
         });
+    }
+    
+    render(data?: Partial<IProduct>): HTMLElement {
+        const element = super.render(data);
+        
+        if (data?.id) {
+            element.dataset.id = data.id;
+        }
+        
+        return element;
     }
 }

@@ -11,12 +11,13 @@ import { Modal } from './components/view/Modal';
 import { CardCatalog } from './components/view/card/CardCatalog';
 import { CardPreview } from './components/view/card/CardPreview';
 import { CardBasket } from './components/view/card/CardBasket';
-import { Basket } from './components/view/Other/Basket';
+import { Basket } from './components/view/Basket';
 import { OrderForm } from './components/view/form/OrderForm';
 import { ContactsForm } from './components/view/form/ContactsForm';
-import { OrderSuccess } from './components/view/Other/OrderSuccess';
-import { IProduct, IOrder } from './types';
+import { OrderSuccess } from './components/view/OrderSuccess';
+import { IOrder } from './types';
 import { API_URL } from './utils/constants';
+
 function cloneTemplate<T extends HTMLElement>(template: HTMLTemplateElement): T {
     if (!template.content.firstElementChild) {
         throw new Error(`Template ${template.id} has no content`);
@@ -64,21 +65,63 @@ const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
 const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const success = new OrderSuccess(cloneTemplate(successTemplate), events);
 
-let currentPreviewProduct: IProduct | null = null;
+// Вспомогательная функция для проверки валидности формы заказа
+function validateOrderForm(): { isValid: boolean; errors: { payment?: string; address?: string } } {
+    const buyerData = buyer.getData();
+    const errors: { payment?: string; address?: string } = {};
+    let isValid = true;
+    
+    if (!buyerData.payment || !buyerData.payment.trim()) {
+        errors.payment = "Не выбран способ оплаты";
+        isValid = false;
+    }
+    
+    if (!buyerData.address || !buyerData.address.trim()) {
+        errors.address = "Не указан адрес";
+        isValid = false;
+    }
+    
+    return { isValid, errors };
+}
+
+// Вспомогательная функция для проверки валидности формы контактов
+function validateContactsForm(): { isValid: boolean; errors: { email?: string; phone?: string } } {
+    const buyerData = buyer.getData();
+    const errors: { email?: string; phone?: string } = {};
+    let isValid = true;
+    
+    if (!buyerData.email || !buyerData.email.trim()) {
+        errors.email = "Не указан email";
+        isValid = false;
+    }
+    
+    if (!buyerData.phone || !buyerData.phone.trim()) {
+        errors.phone = "Не указан телефон";
+        isValid = false;
+    }
+    
+    return { isValid, errors };
+}
 
 events.on('products:changed', () => {
     const items = products.getItems();
     console.log('Товары загружены:', items.length);
+    
     const catalogCards = items.map((product) => {
         const cardElement = cloneTemplate(cardCatalogTemplate);
         const card = new CardCatalog(cardElement, events);
-        return card.render({
+        
+        const cardInstance = card.render({
             id: product.id,
             title: product.title,
             image: product.image,
             price: product.price,
             category: product.category
         });
+        
+        cardInstance.dataset.id = product.id;
+        
+        return cardInstance;
     });
     
     gallery.setItems(catalogCards);
@@ -87,12 +130,13 @@ events.on('products:changed', () => {
 events.on('card:select', (data: { id: string }) => {
     const product = products.getItem(data.id);
     if (!product) return;
-    currentPreviewProduct = product;
+    
+    products.setPreviewItem(product);
+    
     const cardElement = cloneTemplate(cardPreviewTemplate);
     const card = new CardPreview(cardElement, events);
-    const inCart = cart.hasItem(product.id);
-
-    card.render({
+    
+    const cardInstance = card.render({
         id: product.id,
         title: product.title,
         image: product.image,
@@ -101,8 +145,9 @@ events.on('card:select', (data: { id: string }) => {
         description: product.description
     });
     
-    card.setButtonState(inCart);
+    cardInstance.dataset.id = product.id;
     
+    card.setButtonState(cart.hasItem(product.id));
     modal.setContent(card);
     modal.open();
 });
@@ -117,7 +162,8 @@ events.on('card:add', (data: { id: string }) => {
         cart.addItem(product);
     }
     
-    if (currentPreviewProduct?.id === product.id && modal.isOpen()) {
+    const previewProduct = products.getPreviewItem();
+    if (previewProduct?.id === product.id && modal.isOpen()) {
         const cardElement = cloneTemplate(cardPreviewTemplate);
         const card = new CardPreview(cardElement, events);
         card.render({
@@ -135,18 +181,18 @@ events.on('card:add', (data: { id: string }) => {
 
 events.on('cart:changed', () => {
     header.setCounter(cart.getCount());
-    
-    if (currentPreviewProduct && modal.isOpen()) {
-        const inCart = cart.hasItem(currentPreviewProduct.id);
+    const previewProduct = products.getPreviewItem();
+    if (previewProduct && modal.isOpen()) {
+        const inCart = cart.hasItem(previewProduct.id);
         const cardElement = cloneTemplate(cardPreviewTemplate);
         const card = new CardPreview(cardElement, events);
         card.render({
-            id: currentPreviewProduct.id,
-            title: currentPreviewProduct.title,
-            image: currentPreviewProduct.image,
-            price: currentPreviewProduct.price,
-            category: currentPreviewProduct.category,
-            description: currentPreviewProduct.description
+            id: previewProduct.id,
+            title: previewProduct.title,
+            image: previewProduct.image,
+            price: previewProduct.price,
+            category: previewProduct.category,
+            description: previewProduct.description
         });
         card.setButtonState(inCart);
         modal.setContent(card);
@@ -192,45 +238,72 @@ events.on('basket:remove', (data: { id: string }) => {
 events.on('basket:checkout', () => {
     const buyerData = buyer.getData();
     orderForm.render(buyerData);
+    const validation = validateOrderForm();
+    orderForm.updateSubmitButton(validation.isValid);
+    orderForm.setFormError(validation.errors);
     
     modal.setContent(orderForm);
 });
 
 events.on('order:payment', (data: { payment: 'online' | 'offline' }) => {
     buyer.setData({ payment: data.payment });
+    const validation = validateOrderForm();
+    orderForm.updateSubmitButton(validation.isValid);
+    orderForm.setFormError(validation.errors);
 });
 
 events.on('order:address', (data: { address: string }) => {
     buyer.setData({ address: data.address });
+    const validation = validateOrderForm();
+    orderForm.updateSubmitButton(validation.isValid);
+    orderForm.setFormError(validation.errors);
 });
 
 events.on('order:submit', (data: { payment: 'online' | 'offline', address: string }) => {
     buyer.setData(data);
+    
+    const orderValidation = validateOrderForm();
+    
+    if (!orderValidation.isValid) {
+        console.log('Первая форма не валидна:', orderValidation.errors);
+        return;
+    }
     
     const buyerData = buyer.getData();
     contactsForm.render({
         email: buyerData.email,
         phone: buyerData.phone
     });
+
+    const contactsValidation = validateContactsForm();
+    contactsForm.updateSubmitButton(contactsValidation.isValid);
+    contactsForm.setFormErrors(contactsValidation.errors);
     
     modal.setContent(contactsForm);
 });
 
 events.on('contacts:email', (data: { email: string }) => {
     buyer.setData({ email: data.email });
+    const validation = validateContactsForm();
+    contactsForm.updateSubmitButton(validation.isValid);
+    contactsForm.setFormErrors(validation.errors);
 });
 
 events.on('contacts:phone', (data: { phone: string }) => {
     buyer.setData({ phone: data.phone });
+    const validation = validateContactsForm();
+    contactsForm.updateSubmitButton(validation.isValid);
+    contactsForm.setFormErrors(validation.errors);
 });
 
 events.on('contacts:submit', async (data: { email: string, phone: string }) => {
     buyer.setData(data);
     
+
     const validation = buyer.validate();
+    
     if (!validation.isValid) {
-        console.error('Ошибки валидации:', validation.errors);
-        alert('Пожалуйста, заполните все поля корректно');
+        console.log('Форма не валидна, ошибки:', validation.errors);
         return;
     }
     
@@ -252,8 +325,8 @@ events.on('contacts:submit', async (data: { email: string, phone: string }) => {
         header.setCounter(0);
         
     } catch (error) {
-        console.error('Ошибка при оформлении', error);
-        alert('Что-то пошло не так');
+        console.error('Ошибка при оформлении заказа:', error);
+        alert('Произошла ошибка при оформлении заказа');
     }
 });
 
@@ -262,7 +335,7 @@ events.on('success:close', () => {
 });
 
 events.on('modal:close', () => {
-    currentPreviewProduct = null;
+    products.setPreviewItem(null);
 });
 
 productApiData.getProduct()
@@ -274,6 +347,3 @@ productApiData.getProduct()
         console.error('Ошибка при загрузке товаров:', error);
         alert('Не удалось загрузить товары. Пожалуйста, обновите страницу.');
     });
-
-
-    // Я все понимаю )))))) Но блин если сказать честно плотно использовал ИИ, но теперь я начал излагать мысли правильно в запросе. Есть много(КУЧААААА!!!!!!) моментов где нужно подтянуть знания не отрицаю. До Radme не добрался. Спасибо что тратите свое время на наше слепленное безумие).//

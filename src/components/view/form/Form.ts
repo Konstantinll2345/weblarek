@@ -14,7 +14,7 @@ export abstract class Form<T> extends View<T> {
         this.errorsElement = this.getElement<HTMLElement>('.form__errors');
     }
     
-    protected setErrors(text: string): void {
+    protected setErrorText(text: string): void {
         this.setText(this.errorsElement, text);
     }
     

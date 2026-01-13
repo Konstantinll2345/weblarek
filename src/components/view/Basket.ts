@@ -1,5 +1,5 @@
-import { View } from '../View';
-import { EventEmitter } from '../../base/Events';
+import { View } from './View';
+import { EventEmitter } from '../base/Events';
 interface BasketData {
     total: number;
     isEmpty: boolean;
