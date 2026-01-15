@@ -105,23 +105,20 @@ function validateContactsForm(): { isValid: boolean; errors: { email?: string; p
 
 events.on('products:changed', () => {
     const items = products.getItems();
-    console.log('Товары загружены:', items.length);
     
     const catalogCards = items.map((product) => {
         const cardElement = cloneTemplate(cardCatalogTemplate);
-        const card = new CardCatalog(cardElement, events);
+        const card = new CardCatalog(cardElement, events, () => {
+            events.emit('card:select', { id: product.id });
+        });
         
-        const cardInstance = card.render({
+        return card.render({
             id: product.id,
             title: product.title,
-            image: product.image,
+            image: product.image, 
             price: product.price,
             category: product.category
         });
-        
-        cardInstance.dataset.id = product.id;
-        
-        return cardInstance;
     });
     
     gallery.setItems(catalogCards);
@@ -132,11 +129,12 @@ events.on('card:select', (data: { id: string }) => {
     if (!product) return;
     
     products.setPreviewItem(product);
-    
     const cardElement = cloneTemplate(cardPreviewTemplate);
-    const card = new CardPreview(cardElement, events);
+    const card = new CardPreview(cardElement, events, () => {
+        events.emit('card:add', { id: product.id });
+    });
     
-    const cardInstance = card.render({
+    card.render({
         id: product.id,
         title: product.title,
         image: product.image,
@@ -144,8 +142,6 @@ events.on('card:select', (data: { id: string }) => {
         category: product.category,
         description: product.description
     });
-    
-    cardInstance.dataset.id = product.id;
     
     card.setButtonState(cart.hasItem(product.id));
     modal.setContent(card);
@@ -165,7 +161,9 @@ events.on('card:add', (data: { id: string }) => {
     const previewProduct = products.getPreviewItem();
     if (previewProduct?.id === product.id && modal.isOpen()) {
         const cardElement = cloneTemplate(cardPreviewTemplate);
-        const card = new CardPreview(cardElement, events);
+        const card = new CardPreview(cardElement, events, () => {
+            events.emit('card:add', { id: product.id });
+        });
         card.render({
             id: product.id,
             title: product.title,
@@ -185,7 +183,9 @@ events.on('cart:changed', () => {
     if (previewProduct && modal.isOpen()) {
         const inCart = cart.hasItem(previewProduct.id);
         const cardElement = cloneTemplate(cardPreviewTemplate);
-        const card = new CardPreview(cardElement, events);
+        const card = new CardPreview(cardElement, events, () => {
+            events.emit('card:add', { id: previewProduct.id });
+        });
         card.render({
             id: previewProduct.id,
             title: previewProduct.title,
@@ -205,12 +205,16 @@ events.on('basket:open', () => {
     
     items.forEach((item, index) => {
         const cardElement = cloneTemplate(cardBasketTemplate);
-        const card = new CardBasket(cardElement, events);
+        const card = new CardBasket(cardElement, events, () => {
+            events.emit('basket:remove', { id: item.id });
+        });
+        
         const cardInstance = card.render({
             id: item.id,
             title: item.title,
             price: item.price
         });
+        
         card.setIndex(index + 1);
         basket.addItem(cardInstance);
     });
@@ -247,6 +251,7 @@ events.on('basket:checkout', () => {
 
 events.on('order:payment', (data: { payment: 'online' | 'offline' }) => {
     buyer.setData({ payment: data.payment });
+    orderForm.selectPayment(data.payment);
     const validation = validateOrderForm();
     orderForm.updateSubmitButton(validation.isValid);
     orderForm.setFormError(validation.errors);
@@ -299,7 +304,6 @@ events.on('contacts:phone', (data: { phone: string }) => {
 events.on('contacts:submit', async (data: { email: string, phone: string }) => {
     buyer.setData(data);
     
-
     const validation = buyer.validate();
     
     if (!validation.isValid) {

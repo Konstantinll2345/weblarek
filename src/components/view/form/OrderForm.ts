@@ -22,12 +22,10 @@ export class OrderForm extends Form<OrderFormData> {
         
 
         this.onlineButton.addEventListener('click', () => {
-            this.selectPayment('online');
             this.events.emit('order:payment', { payment: 'online' });
         });
         
         this.offlineButton.addEventListener('click', () => {
-            this.selectPayment('offline');
             this.events.emit('order:payment', { payment: 'offline' });
         });
         
@@ -44,7 +42,7 @@ export class OrderForm extends Form<OrderFormData> {
         });
     }
     
-    private selectPayment(payment: TPayment): void {
+    selectPayment(payment: TPayment): void {
         this.selectedPayment = payment;
         this.toggleClass(this.onlineButton, 'button_alt-active', payment === 'online');
         this.toggleClass(this.offlineButton, 'button_alt-active', payment === 'offline');

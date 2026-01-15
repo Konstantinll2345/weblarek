@@ -5,19 +5,17 @@ import { IProduct } from '../../../types';
 export class CardPreview extends Card {
     private descriptionElement: HTMLElement;
     private buttonElement: HTMLButtonElement;
+      private onButtonClick: () => void;
     
-    constructor(container: HTMLElement, events: EventEmitter) {
+    constructor(container: HTMLElement, events: EventEmitter, onButtonClick: () => void) {
         super(container, events);
-        
+        this.onButtonClick = onButtonClick;
         this.descriptionElement = this.getElement<HTMLElement>('.card__text');
         this.buttonElement = this.getElement<HTMLButtonElement>('.card__button');
         
         this.buttonElement.addEventListener('click', (event) => {
             event.preventDefault();
-            const id = this.container.dataset.id;
-            if (id) {
-                this.events.emit('card:add', { id });
-            }
+            this.onButtonClick();
         });
     }
     
@@ -33,12 +31,8 @@ export class CardPreview extends Card {
         this.setText(this.descriptionElement, description);
     }
     
-    render(data?: Partial<IProduct>): HTMLElement {
+     render(data?: Partial<IProduct>): HTMLElement {
         const element = super.render(data);
-        
-        if (data?.id) {
-            element.dataset.id = data.id;
-        }
         
         if (data?.description) {
             this.setDescription(data.description);

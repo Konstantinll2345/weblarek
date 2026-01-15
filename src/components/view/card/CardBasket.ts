@@ -6,7 +6,9 @@ export class CardBasket extends Card {
     private indexElement: HTMLElement;
     private deleteButton: HTMLButtonElement;
     
-    constructor(container: HTMLElement, events: EventEmitter) {
+
+
+    constructor(container: HTMLElement, events: EventEmitter, onRemove: () => void) {
         super(container, events);
         
         this.indexElement = this.getElement<HTMLElement>('.basket__item-index');
@@ -14,10 +16,7 @@ export class CardBasket extends Card {
         
         this.deleteButton.addEventListener('click', (event) => {
             event.preventDefault();
-            const id = this.container.dataset.id;
-            if (id) {
-                this.events.emit('basket:remove', { id });
-            }
+            onRemove();
         });
     }
     
@@ -26,11 +25,6 @@ export class CardBasket extends Card {
     }
     
     render(data?: Partial<IProduct>): HTMLElement {
-        const element = super.render(data);
-        if (data?.id) {
-            element.dataset.id = data.id;
-        }
-        
-        return element;
+        return super.render(data);
     }
 }
